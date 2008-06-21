@@ -1,0 +1,52 @@
+AclSystem2Ownership
+===================
+
+This plugin adds ownership functionality to Ezra's Zygmuntowicz acl_system plugin.
+In order to use it you have to invoke 'owner' method which takes one parameter --
+a string containing code that returns owner's User object. That method creates
+virtual role 'owner' which you can use in your permissions strings.
+
+Example:
+
+class UsersController < ApplicationController
+  before_filter :login_required, :only => [:update_photo]
+  before_filter :find_photo   # sets @photo
+  owner '@photo.user'
+  access_control :update_photo => '(admin | owner)'
+end
+
+Above example gives access to users with admin role and to the owner of the
+@photo object which is to be updated.
+
+
+page_owner
+----------
+
+There is a second virtual role added by this plugin, called 'page_owner'. It
+also takes a string which returns user object as a parameter. It's sometimes
+handy to have an ability to set two various users which can have access to a page
+or some resources on page.
+For example there are whiteboards, everybody can post new entries on them, and
+authors of that entries are owners. But whiteboard belongs to one specific user
+and he is the page_owner in that scenario, so:
+
+  owner '@author', :page_owner => '@user'
+  access_control :destroy => '(owner | page_owner)'
+
+And now owner and page_owner have ability do delete whiteboard entries.
+
+
+Various owners for different actions
+------------------------------------
+
+There is a possibility to define various owners for different actions:
+
+owner '@album.user', {}, :new => '@user', :index => '@another_user', :create => '@user', :show => nil
+
+Some actions don't have any owner, and then we can just set owners of such actions
+to be nil.
+
+TESTS
+Tests won't work if acl plugin is in another directory than ../acl_system2
+
+Author: Michal Ochman ocherek@gmail.com
