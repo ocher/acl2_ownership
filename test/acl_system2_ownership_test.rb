@@ -14,13 +14,9 @@ class AbstractUser
   attr_accessor :id
   attr_accessor :name
 
-  def initialize(name = 'name')
+  def initialize(name = 'name', id = 1)
     @name = name
-  end
-
-  def id
-    @id ||= 1
-    @id
+    @id = id
   end
 end
 
@@ -146,5 +142,17 @@ class AclSystem2OwnershipTest < Test::Unit::TestCase
     context[:user].id = 2
     assert_equal controller.permit?("page_owner", context), false
     assert_equal controller.permit?("user | page_owner", context), true
+  end
+  
+  def test_array_of_owners
+    owner1, owner2 = User.new('owner1', 1), User.new('owner1', 2)
+    context_owner1 = { :user => User.new('owner1', 1) }              # logged in user, id = 1
+    context_owner2 = { :user => User.new('owner2', 2) }              # logged in user, id = 2
+    context_not_owner = { :user => User.new('owner2', 1000) }        # logged in user, id = 1000
+    controller = ControllerProxy.new([owner1, owner2])               # user 1 is owner of object (the same id)
+    
+    assert_equal true, controller.permit?("owner", context_owner1)
+    assert_equal true, controller.permit?("owner", context_owner2)    
+    assert_equal false, controller.permit?("owner", context_not_owner)    
   end
 end

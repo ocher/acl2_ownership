@@ -18,6 +18,22 @@ end
 Above example gives access to users with admin role and to the owner of the
 @photo object which is to be updated.
 
+There can also be passed array of owners as owner method argument:
+
+class UsersController < ApplicationController
+  before_filter :login_required, :only => [:update_photo]
+  before_filter :find_photo   # sets @photo
+  owner '@users'
+  access_control :update_photo => '(admin | owner)'
+  
+  protected
+  
+  def find_photo
+    @photo = Photo.find(params[:id])
+    @users = [@photo.owner_1, @photo.owner_2]
+  end
+end
+
 
 page_owner
 ----------
@@ -45,6 +61,7 @@ owner '@album.user', {}, :new => '@user', :index => '@another_user', :create => 
 
 Some actions don't have any owner, and then we can just set owners of such actions
 to be nil.
+
 
 TESTS
 Tests won't work if acl plugin is in another directory than ../acl_system2

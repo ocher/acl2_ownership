@@ -11,7 +11,14 @@ module Ocher
       def check(key, context)
         if key.downcase == 'owner'
           logged_user context[:user] do
-            (context[:user].id == context[:owner].id)
+            unless context[:owner].is_a?(Array)
+              (context[:user].id == context[:owner].id)
+            else
+              context[:owner].each do |owner|
+                return true if owner.id == context[:user].id
+              end
+              false
+            end
           end
         elsif key.downcase == 'page_owner'
           logged_user context[:user] do
